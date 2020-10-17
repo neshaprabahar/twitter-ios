@@ -15,7 +15,6 @@ class HomeTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadTweet()
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -24,17 +23,24 @@ class HomeTableViewController: UITableViewController {
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        loadTweet()
+        
+    }
+    
     func loadTweet() {
         
         let myURL = "https://api.twitter.com/1.1/statuses/home_timeline.json"
         let myParams = ["count": 10]
         
         TwitterAPICaller.client?.getDictionariesRequest(url: myURL, parameters: myParams , success: { (tweets: [NSDictionary]) in
+            self.tweetArray.removeAll()
             for tweet in tweets {
-                self.tweetArray.removeAll()
                 self.tweetArray.append(tweet)
             }
             self.tableView.reloadData()
+        
         }, failure: { (Error) in
             print("Failure to retrieve")
         })
@@ -50,9 +56,13 @@ class HomeTableViewController: UITableViewController {
         let imageURL = URL(string: (user["profile_image_url_https"] as? String)!)
 
         let data = try? Data(contentsOf: imageURL!)
-        if let imageData = data {
+        if let imageData = data { 
             cell.profileImage.image = UIImage(data: imageData)
         }
+        
+        cell.setFavorite(tweetArray[indexPath.row]["favorited"] as! Bool)
+        cell.tweetId = tweetArray[indexPath.row]["id"] as! Int
+        cell.setRetweeted(tweetArray[indexPath.row]["retweeted"] as! Bool)
         return cell
     }
 
@@ -65,6 +75,7 @@ class HomeTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
+        print(tweetArray.count)
         return tweetArray.count
     }
     
